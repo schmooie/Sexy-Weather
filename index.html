@@ -14,6 +14,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
     <script src="js/nlForm.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/utilities.service.js"></script>
 	</head>
 	<body class="nl-blurred" ng-controller="MainCtrl">
 		<div class="container demo-1">
@@ -23,6 +24,7 @@
 			<div class="main clearfix">
         <form id="nl-form" class="nl-form">
           Will the weather in
+          <br>
           <nl-text value="response.where" placeholder="New York" subline="{{ subline }}" name="city"></nl-text>
           be sexy <nl-select value="response.when" options="whens"></nl-select> ?
           <div class="nl-submit-wrap">
