@@ -1,5 +1,5 @@
 angular.module('sexyWeather', ['nlForm'])
-	.controller('MainCtrl', ['$scope', function($scope){
+	.controller('MainCtrl', ['$scope', '$http', function ($scope, $http) {
 		$scope.whens = [
 			'today',
 			'tomorrow',
@@ -14,6 +14,6 @@ angular.module('sexyWeather', ['nlForm'])
 		$scope.subline = "For example: <em>New York</em> or <em>10005</em>";
 
 		$scope.getWeather = function () {
-			console.log($scope.when, $scope.location);
+			console.log($scope.response);
 		};
 	}]);
