@@ -31,6 +31,7 @@ app.controller('MainCtrl', ['$scope', '$http', '$q', 'utilities', function ($sco
 
 	var fetchWeather = function (url, days) {
 		var res = [];
+		var deferred = $q.defer();
 		$http.get(url).success(function(data) {
 			if (days > 1) {
 				data.list.forEach(function(el){
@@ -41,14 +42,15 @@ app.controller('MainCtrl', ['$scope', '$http', '$q', 'utilities', function ($sco
 				});
 			} else {
 				res.push({
-					min:utilities.kToF(data.main.temp_min),
+					min: utilities.kToF(data.main.temp_min),
 					max: utilities.kToF(data.main.temp_max),
 					now: utilities.kToF(data.main.temp)
 				});
 			}
 			console.log(res);
-			return res;
+			deferred.resolve(res);
 		});
+		return deferred.promise;
 	};
 
 	$scope.getWeather = function () {
@@ -56,7 +58,6 @@ app.controller('MainCtrl', ['$scope', '$http', '$q', 'utilities', function ($sco
 				finalEndPoint = '',
 				days = 0,
 				weatherData;
-		var deferred = $q.defer();
 
 		if (response.when === 'today') {
 			finalEndPoint = makeEndPoint(false, response.where);
@@ -69,13 +70,8 @@ app.controller('MainCtrl', ['$scope', '$http', '$q', 'utilities', function ($sco
 			days = 7;
 		}
 
-		deferred.resolve(fetchWeather(finalEndPoint, days));
-
-		console.log(deferred.promise);
-		deferred.promise.then(function(data){
+		fetchWeather(finalEndPoint, days).then(function(data){
 			console.log(data);
 		});
-
-
 	};
 }]);
