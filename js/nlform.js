@@ -1,183 +1,521 @@
-/**
- * nlform.js v1.0.0
- * http://www.codrops.com
- *
- * Licensed under the MIT license.
- * http://www.opensource.org/licenses/mit-license.php
- * 
- * Copyright 2013, Codrops
- * http://www.codrops.com
- */
-;( function( window ) {
-	
-	'use strict';
+var nlForm = angular.module('nlForm',[]);
+    nlForm.directive('nlSelect', function(){
+        return {
+            restrict: 'EA',
+      replace: true,
+      scope: {
+        value: '=',
+        options: '='
+      },
+            controller: 'nlSelectCtrl',
+      template:
+        "<div ng-form='nlSelect' class='nl-field nl-dd' ng-class=\"{'nl-field-open': opened}\">" +
+          "<a class='nl-field-toggle' ng-click='open($event)' ng-bind='getSelected()'></a>" +
+          "<ul>" +
+                        "<li ng-show='allOptions && multiple && !isAllSelected()' ng-bind='allOptions' ng-click='selectAll()'></li>" +
+            "<li ng-repeat='label in getLabels()' ng-class=\"{'nl-dd-checked': isSelected(label)}\" ng-click='select(label)' ng-bind='label'></li>" +
+                        "<li ng-show='multiple && !isNoneSelected()' ng-bind='none' ng-click='selectNone()'></li> " +
+          "</ul>" +
+        "</div>",
+      link: function(scope, element, attributes){
 
-	var document = window.document;
+        // is this required
+        scope.required = !angular.isUndefined(attributes.required);
 
-	if (!String.prototype.trim) {
-		String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
-	}
+        // allow multiple options to be selected
+        scope.multiple = !angular.isUndefined(attributes.multiple);
+        // text for the view when multiple options are selected
+        scope.conjunction = scope.multiple && attributes.multiple !== ''?attributes.multiple:'and';
+        // text for the view when no options are selected
+        scope.none = !angular.isUndefined(attributes.none)?attributes.none:'none';
 
-	function NLForm( el ) {	
-		this.el = el;
-		this.overlay = this.el.querySelector( '.nl-overlay' );
-		this.fields = [];
-		this.fldOpen = -1;
-		this._init();
-	}
+                // an option which is the equivalent of "select all" (multiple only)
+                scope.allOptions = !angular.isUndefined(attributes.all) ? attributes.all : false;
 
-	NLForm.prototype = {
-		_init : function() {
-			var self = this;
-			Array.prototype.slice.call( this.el.querySelectorAll( 'select' ) ).forEach( function( el, i ) {
-				self.fldOpen++;
-				self.fields.push( new NLField( self, el, 'dropdown', self.fldOpen ) );
-			} );
-			Array.prototype.slice.call( this.el.querySelectorAll( 'input:not([type="hidden"])' ) ).forEach( function( el, i ) {
-				self.fldOpen++;
-				self.fields.push( new NLField( self, el, 'input', self.fldOpen ) );
-			} );
-			this.overlay.addEventListener( 'click', function(ev) { self._closeFlds(); } );
-			this.overlay.addEventListener( 'touchstart', function(ev) { self._closeFlds(); } );
-		},
-		_closeFlds : function() {
-			if( this.fldOpen !== -1 ) {
-				this.fields[ this.fldOpen ].close();
-			}
-		}
-	};
+        // convert the value to an array if this is a multi-select
+                if(scope.multiple && angular.isUndefined(scope.value)){
+                    scope.value = [];
+                }
+        if(scope.multiple && !angular.isArray(scope.value)) {
+          scope.value = [scope.value];
+        }
 
-	function NLField( form, el, type, idx ) {
-		this.form = form;
-		this.elOriginal = el;
-		this.pos = idx;
-		this.type = type;
-		this._create();
-		this._initEvents();
-	}
+        var overlay = false;
+        //look for an overlay element
+        angular.forEach(element.parent().children(), function(child){
+          child = angular.element(child);
+          if(child.hasClass('nl-overlay')){
+            overlay = child;
+          }
+        });
+        if(!overlay){
+          // no overlay exists so create one
+          overlay = angular.element('<div class="nl-overlay"></div>');
+          element.parent().append(overlay);
+        }
+        // close the select when the overlay is clicked
+        overlay.bind('click',function() { scope.$apply(scope.close); });
 
-	NLField.prototype = {
-		_create : function() {
-			if( this.type === 'dropdown' ) {
-				this._createDropDown();	
-			}
-			else if( this.type === 'input' ) {
-				this._createInput();	
-			}
-		},
-		_createDropDown : function() {
-			var self = this;
-			this.fld = document.createElement( 'div' );
-			this.fld.className = 'nl-field nl-dd';
-			this.toggle = document.createElement( 'a' );
-			this.toggle.innerHTML = this.elOriginal.options[ this.elOriginal.selectedIndex ].innerHTML;
-			this.toggle.className = 'nl-field-toggle';
-			this.optionsList = document.createElement( 'ul' );
-			var ihtml = '';
-			Array.prototype.slice.call( this.elOriginal.querySelectorAll( 'option' ) ).forEach( function( el, i ) {
-				ihtml += self.elOriginal.selectedIndex === i ? '<li class="nl-dd-checked">' + el.innerHTML + '</li>' : '<li>' + el.innerHTML + '</li>';
-				// selected index value
-				if( self.elOriginal.selectedIndex === i ) {
-					self.selectedIdx = i;
-				}
-			} );
-			this.optionsList.innerHTML = ihtml;
-			this.fld.appendChild( this.toggle );
-			this.fld.appendChild( this.optionsList );
-			this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
-			this.elOriginal.style.display = 'none';
-		},
-		_createInput : function() {
-			var self = this;
-			this.fld = document.createElement( 'div' );
-			this.fld.className = 'nl-field nl-ti-text';
-			this.toggle = document.createElement( 'a' );
-			this.toggle.innerHTML = this.elOriginal.getAttribute('value')? this.elOriginal.getAttribute('value'): this.elOriginal.getAttribute('placeholder');
-			this.toggle.className = 'nl-field-toggle';
-			this.optionsList = document.createElement( 'ul' );
-			this.getinput = document.createElement( 'input' );
-			this.getinput.setAttribute( 'type', this.elOriginal.getAttribute('type')? this.elOriginal.getAttribute('type'): '');
-			this.getinput.setAttribute( 'placeholder', this.elOriginal.getAttribute( 'placeholder' ) );
-			this.getinput.setAttribute( 'value', this.elOriginal.getAttribute('value')? this.elOriginal.getAttribute('value'): '');
-			this.getinputWrapper = document.createElement( 'li' );
-			this.getinputWrapper.className = 'nl-ti-input';
-			this.inputsubmit = document.createElement( 'button' );
-			this.inputsubmit.className = 'nl-field-go';
-			this.inputsubmit.innerHTML = 'Go';
-			this.getinputWrapper.appendChild( this.getinput );
-			this.getinputWrapper.appendChild( this.inputsubmit );
-			this.example = document.createElement( 'li' );
-			this.example.className = 'nl-ti-example';
-			this.example.innerHTML = this.elOriginal.getAttribute( 'data-subline' );
-			this.optionsList.appendChild( this.getinputWrapper );
-			this.optionsList.appendChild( this.example );
-			this.fld.appendChild( this.toggle );
-			this.fld.appendChild( this.optionsList );
-			this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
-			this.elOriginal.style.display = 'none';
-		},
-		_initEvents : function() {
-			var self = this;
-			this.toggle.addEventListener( 'click', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self._open(); } );
-			this.toggle.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self._open(); } );
+      }
+        };
+    })
+  .controller('nlSelectCtrl',['$scope', function($scope){
 
-			if( this.type === 'dropdown' ) {
-				var opts = Array.prototype.slice.call( this.optionsList.querySelectorAll( 'li' ) );
-				opts.forEach( function( el, i ) {
-					el.addEventListener( 'click', function( ev ) { ev.preventDefault(); self.close( el, opts.indexOf( el ) ); } );
-					el.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); self.close( el, opts.indexOf( el ) ); } );
-				} );
-			}
-			else if( this.type === 'input' ) {
-				this.getinput.addEventListener( 'keydown', function( ev ) {
-					if ( ev.keyCode == 13 ) {
-						self.close();
+    // option list type constants
+    var ARRAY_OF_LABELS = 1;    // e.g. [ 'one', 'two', 'three', ...]
+    var ARRAY_OF_OBJECTS = 2;   // e.g. [ { label: 'one', value: 'ten'}, { label: 'two', value: 'nine'}, ...]
+    var OBJECT_OF_VALUES = 3;   // e.g. { 'one':'ten', 'two':'nine', 'three':'eight', ...}
+    var OBJECT_OF_OBJECTS = 4;  // e.g. { 'one':{ label: 'one', value: 'ten'}, 'two':{ label: 'two', value: 'nine' }, ...}
+
+    // is the select open
+    $scope.opened = false;
+
+    // is the value in the list of options
+    function isOption(value) {
+      var found = false;
+      angular.forEach($scope.options,function(opt) {
+        switch($scope.optionType) {
+          case ARRAY_OF_LABELS:
+          case OBJECT_OF_VALUES:
+            if(value == opt) {
+              found = true;
+            }
+            break;
+          case ARRAY_OF_OBJECTS:
+          case OBJECT_OF_OBJECTS:
+            if(value == opt.value) {
+              found = true;
+            }
+            break;
+        }
+      });
+      return found;
+    }
+
+    function optionsLength() {
+      switch($scope.optionType) {
+        case ARRAY_OF_LABELS:
+        case ARRAY_OF_OBJECTS:
+          return $scope.options.length;
+        case OBJECT_OF_OBJECTS:
+        case OBJECT_OF_VALUES:
+          var ctr = 0;
+          angular.forEach($scope.options, function() { ctr++; });
+          return ctr;
+      }
+      return 0;
+    }
+
+    // get the option at the given index, normalized as an object: { value: 'value', label: 'label' }
+    function getOption(index) {
+      if(index < optionsLength() && index >= 0) {
+        switch($scope.optionType) {
+          case ARRAY_OF_LABELS:
+            // the label and value are the same
+            return { value: $scope.options[0], label: $scope.options[0] };
+          case ARRAY_OF_OBJECTS:
+            // already normalized
+            return $scope.options[0];
+          case OBJECT_OF_VALUES:
+          case OBJECT_OF_OBJECTS:
+            // iterate through the options to find the index
+            var option = null;
+            var ctr = 0;
+            angular.forEach($scope.options,function(value, label) {
+              if(ctr == index) {
+                if($scope.optionType == OBJECT_OF_VALUES) {
+                  option = { value: value, label: label };
+                } else {
+                  option = value;
+                }
+              }
+              ctr++;
+            });
+            return option;
+        }
+      }
+      return { value: '', label: ''};
+        }
+
+        // get the label from the given value
+    function getLabel(value) {
+      var label = value;
+      switch($scope.optionType) {
+        case ARRAY_OF_OBJECTS:
+        case OBJECT_OF_OBJECTS:
+          // find the option with the given value and get its value
+          angular.forEach($scope.options, function(opt) {
+            if(opt.value == value) {
+              label = opt.label;
+            }
+          });
+          break;
+        case ARRAY_OF_LABELS:
+          // the label is the value so don't do anything
+          break;
+        case OBJECT_OF_VALUES:
+          // find the option with the given value and get the index (the label)
+          angular.forEach($scope.options, function(opt, index) {
+            if(value == opt) {
+              label = index;
+            }
+          });
+          break;
+      }
+      return label;
+        }
+
+        // get the value given the label
+    function getValue(label) {
+      var value = label;
+
+      switch($scope.optionType) {
+        case ARRAY_OF_LABELS:
+          // the value is the label so don't do anything
+          break;
+        case ARRAY_OF_OBJECTS:
+          // find the option with the given label and get its value
+          angular.forEach($scope.options,function(opt) {
+            if(opt.label == label) {
+              value = opt.value;
+            }
+          });
+          break;
+        case OBJECT_OF_VALUES:
+          // simple index retrieval
+          value = $scope.options[label];
+          break;
+        case OBJECT_OF_OBJECTS:
+          // simple index retrieval
+          value = $scope.options[label].value;
+          break;
+      }
+
+      return value;
+        }
+
+    // given an option (label, object, value, etc) retrieve its label
+    function getLabelFromOption(option) {
+      var label = option;
+
+      switch($scope.optionType) {
+        case ARRAY_OF_LABELS:
+          // the option is the value so don't do anything
+          break;
+        case OBJECT_OF_VALUES:
+          angular.forEach($scope.options,function(val, lbl) {
+            if(option == val) {
+              label = lbl;
+            }
+          });
+          break;
+        case ARRAY_OF_OBJECTS:
+          // find the option with the given label
+          angular.forEach($scope.options,function(opt) {
+            if(opt.value == option.value) {
+              label = opt.label;
+            }
+          });
+          break;
+        case OBJECT_OF_OBJECTS:
+          angular.forEach($scope.options,function(val, lbl) {
+            if(option == val) {
+              label = lbl;
+            }
+          });
+          break;
+      }
+
+      return label;
+        }
+
+        // check to make sure all the values are in the list of options
+    function checkValue() {
+      if($scope.multiple) {
+        var values = [];
+        angular.forEach($scope.value, function(value) {
+          if(isOption(value)) {
+            values.push(value);
+          }
+        });
+        $scope.value = values;
+      } else {
+        if(!isOption($scope.value)) {
+          $scope.value = getOption(0).value;
+        }
+      }
+        }
+
+        // open the select
+    $scope.open = function(event){
+      event.stopPropagation();
+      $scope.opened = true;
+    };
+
+    // close the select
+    $scope.close = function(){
+      $scope.opened = false;
+    };
+
+    // select an option
+    $scope.select = function(option) {
+      $scope.setValue(option);
+      $scope.close();
+    };
+
+        /**
+         * select all options
+         */
+        $scope.selectAll = function(){
+            angular.forEach($scope.options, function(option){
+        var label = getLabelFromOption(option);
+                if(!$scope.isSelected(label)){
+                    $scope.select(label);
+                }
+                $scope.close();
+            });
+        };
+
+        /**
+         * unselect all options
+         */
+        $scope.selectNone = function(){
+            angular.forEach($scope.options, function(option){
+        var label = getLabelFromOption(option);
+                if($scope.isSelected(label)){
+                    $scope.select(label);
+                }
+                $scope.close();
+            });
+        };
+
+        /**
+         * Returns true if all possible options have been selected; false otherwise.
+         * @returns {boolean}
+         */
+        $scope.isAllSelected = function(){
+            return !angular.isUndefined($scope.value) && $scope.value.length == optionsLength();
+        };
+
+        /**
+         * Returns true if no options are selected; false otherwise.
+         * @returns {boolean}
+         */
+        $scope.isNoneSelected = function(){
+            return angular.isUndefined($scope.value) || $scope.value.length === 0;
+        };
+
+    // set the value, or add it to the list if this is a multi-select
+    $scope.setValue = function(option) {
+      var value = getValue(option);
+      if($scope.multiple) {
+        var index = $scope.value.indexOf(value);
+        if(index == -1) {
+          $scope.value.push(value);
+        } else {
+          $scope.value.splice(index,1);
+        }
+        if($scope.required) {
+          // at least one option must be selected
+          if($scope.value.length === 0) {
+            // no options selected so it's invalid
+            $scope.nlSelect.$setValidity('required',false);
+          } else {
+            // we're good here
+            $scope.nlSelect.$setValidity('required',true);
+          }
+        }
+      } else {
+        $scope.value = value;
+      }
+    };
+
+    // extract just the labels from the options
+    $scope.getLabels = function() {
+      switch($scope.optionType) {
+        case ARRAY_OF_LABELS:
+          // don't need to do anything
+          return $scope.options;
+        case ARRAY_OF_OBJECTS:
+          // map the array to pull out the label
+          return $scope.options.map(function(opt) {
+            return opt.label;
+          });
+        case OBJECT_OF_VALUES:
+        case OBJECT_OF_OBJECTS:
+          // iterate through the options to get the labels
+          var options = [];
+          angular.forEach($scope.options,function(value, label) {
+            if($scope.optionType == OBJECT_OF_VALUES) {
+              options.push(label);
+            } else {
+              options.push(value.label);
+            }
+          });
+          return options;
+      }
+      return [];
+    };
+
+    // concatenate the current selections for the view
+    $scope.getSelected = function() {
+      if($scope.multiple) {
+        // there might be multiple selections
+        var text = '';
+        if(!angular.isUndefined($scope.value) && $scope.value.length > 0) {
+          // there is at least one selection
+                    if($scope.allOptions && $scope.value.length == optionsLength()){
+                        //all options have been selected, and the 'all' parameter has been set
+                        text = $scope.allOptions;
+                    }
+                    else{
+                        var comma = '';
+                        var ctr = 1;
+                        angular.forEach($scope.value, function(value) {
+                            text += comma+getLabel(value);
+                            ctr++;
+                            if($scope.value.length > 2){
+                                comma = ', ';
+                            } else {
+                                comma = ' ';
+                            }
+                            if(ctr == $scope.value.length) {
+                                comma += $scope.conjunction+' ';
+                            }
+                        });
+                    }
+        } else {
+          // no selections
+          text = $scope.none;
+        }
+        return text;
+      } else {
+        // only one selection possible
+        return getLabel($scope.value);
+      }
+    };
+
+    // check if the option is selected
+    $scope.isSelected = function(option) {
+            if(angular.isUndefined($scope.value)){
+                return false;
+            }
+      if($scope.multiple) {
+        return $scope.value.indexOf(getValue(option)) > -1;
+      } else {
+        return $scope.value == getValue(option);
+      }
+    };
+
+    // make sure we update the options internally if they change externally
+    $scope.$watch('options',function() {
+
+      // reset option list type
+      $scope.optionType = null;
+      if(angular.isArray($scope.options)) {
+        // option list is an array
+        if(angular.isObject($scope.options[0])) {
+          // of objects
+          $scope.optionType = ARRAY_OF_OBJECTS;
+        } else {
+          // of labels
+          $scope.optionType = ARRAY_OF_LABELS;
+        }
+      } else if(angular.isObject($scope.options)) {
+        // option list is an object
+        for(var key in $scope.options) {
+          if($scope.options.hasOwnProperty(key)) {
+            if(angular.isObject($scope.options[key])) {
+              // of objects
+              $scope.optionType = OBJECT_OF_OBJECTS;
+            } else {
+              // of key:value pairs
+              $scope.optionType = OBJECT_OF_VALUES;
+            }
+            break;
+          }
+        }
+      }
+
+      // make sure the value is still in the list of options
+      checkValue();
+
+    },true);
+
+  }]);
+
+nlForm.directive('nlText', function(){
+        return {
+            restrict: 'EA',
+			replace: true,
+			scope: {
+				placeholder: '@',
+				subline: '@',
+				name: '@',
+				value: '='
+			},
+            template:
+                '<div ng-form class="nl-field nl-ti-text" ng-class="{\'nl-field-open\': opened}">' +
+                    '<a class="nl-field-toggle" ng-click="open($event)" ng-bind="viewValue()"></a>' +
+                    '<ul>' +
+                        '<li class="nl-ti-input">' +
+                            '<input type="text" placeholder="{{ placeholder }}" name="{{ name }}" ng-model="value" ng-click="$event.stopPropagation()" ng-required="required"/>' +
+                            '<button class="nl-field-go" ng-click="close()">Go</button>' +
+                        '</li>' +
+                        '<li class="nl-ti-example" ng-show="showSubline()" ng-bind-html-unsafe="subline"></li>' +
+                    '</ul>' +
+                '</div>',
+            controller: 'nlTextCtrl',
+            link: function(scope, element, attributes){
+
+				// is this input required?
+				scope.required = !angular.isUndefined(attributes.required);
+
+                var overlay = false;
+				//look for an overlay element
+				angular.forEach(element.parent().children(), function(child){
+					child = angular.element(child);
+					if(child.hasClass('nl-overlay')){
+						overlay = child;
 					}
-				} );
-				this.inputsubmit.addEventListener( 'click', function( ev ) { ev.preventDefault(); self.close(); } );
-				this.inputsubmit.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); self.close(); } );
-			}
-
-		},
-		_open : function() {
-			if( this.open ) {
-				return false;
-			}
-			this.open = true;
-			this.form.fldOpen = this.pos;
-			var self = this;
-			this.fld.className += ' nl-field-open';
-		},
-		close : function( opt, idx ) {
-			if( !this.open ) {
-				return false;
-			}
-			this.open = false;
-			this.form.fldOpen = -1;
-			this.fld.className = this.fld.className.replace(/\b nl-field-open\b/,'');
-
-			if( this.type === 'dropdown' ) {
-				if( opt ) {
-					// remove class nl-dd-checked from previous option
-					var selectedopt = this.optionsList.children[ this.selectedIdx ];
-					selectedopt.className = '';
-					opt.className = 'nl-dd-checked';
-					this.toggle.innerHTML = opt.innerHTML;
-					// update selected index value
-					this.selectedIdx = idx;
-					// update original select element´s value
-					this.elOriginal.value = this.elOriginal.children[ this.selectedIdx ].value;
+				});
+				if(!overlay){
+					// no overlay exists so create one
+					overlay = angular.element('<div class="nl-overlay"></div>');
+					element.parent().append(overlay);
 				}
-			}
-			else if( this.type === 'input' ) {
-				this.getinput.blur();
-				this.toggle.innerHTML = this.getinput.value.trim() !== '' ? this.getinput.value : this.getinput.getAttribute( 'placeholder' );
-				this.elOriginal.value = this.getinput.value;
-			}
-		}
-	};
+				// close the input when the overlay is clicked
+				overlay.bind('click',function() { scope.$apply(scope.close) });
+            }
+        };
+    })
+	.controller('nlTextCtrl',['$scope', function($scope){
 
-	// add to global namespace
-	window.NLForm = NLForm;
+		// is the input open
+		$scope.opened = false;
 
-} )( window );
+		// open the input
+		$scope.open = function(event){
+			event.stopPropagation();
+			$scope.opened = true;
+		};
+
+		// close the input
+		$scope.close = function(){
+			$scope.opened = false;
+		};
+
+		// if there is no value, show the placeholder instead
+		$scope.viewValue = function(){
+			if($scope.value === ''){
+				return $scope.placeholder;
+			}
+			return $scope.value;
+		};
+
+		// do we have a subline? ok, then show it!
+		$scope.showSubline = function() {
+			return angular.isString($scope.subline) && $scope.subline !== '';
+		};
+
+	}]);
