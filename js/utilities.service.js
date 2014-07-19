@@ -3,6 +3,9 @@ angular.module('sexyWeather')
   	return {
   		kToF: function (k) {
   			return Math.floor(k * 1.8 - 459.67);
+  		},
+  		inRange: function (min, max, target) {
+  			return min <= target <= max;
   		}
   	};
   }]);
