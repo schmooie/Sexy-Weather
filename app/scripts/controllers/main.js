@@ -18,16 +18,6 @@ angular.module('sexyWeather')
       $scope.isSexy = 0;
       $scope.sexyVideo = null;
 
-      var makeEndPoint = function(daily, location) {
-        var endpoint = 'http://api.openweathermap.org/data/2.5/',
-          apiKey = '&APPID=e464e0c345e366e776a6e248c5428112';
-        if (daily) {
-          return endpoint + 'forecast/daily?q=' + location + '&cnt=7&mode=json' + apiKey;
-        } else {
-          return endpoint + 'weather?q=' + location + apiKey;
-        }
-      };
-
       var fetchWeather = function(url, days) {
         var res = [];
         var deferred = $q.defer();
@@ -51,9 +41,19 @@ angular.module('sexyWeather')
         return deferred.promise;
       };
 
+      var makeEndPoint = function(daily, location) {
+        var endpoint = 'http://api.openweathermap.org/data/2.5/',
+          apiKey = '&APPID=e464e0c345e366e776a6e248c5428112';
+        if (daily) {
+          return endpoint + 'forecast/daily?q=' + location + '&cnt=7&mode=json' + apiKey;
+        } else {
+          return endpoint + 'weather?q=' + location + apiKey;
+        }
+      };
+
       $scope.tooSexy = function() {
-      	$scope.isSexy = 0;
-      	$scope.sexyVideo = 'tooSexy';
+        $scope.isSexy = 0;
+        $scope.sexyVideo = 'tooSexy';
       };
 
       $scope.getWeather = function() {
