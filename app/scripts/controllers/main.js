@@ -14,8 +14,9 @@ angular.module('sexyWeather')
         where: 'New York'
       };
 
-      $scope.subline = "For example: <em>New York</em> or <em>River Edge</em>";
-      $scope.isSexy = false;
+      $scope.subline = 'For example: <em>New York</em> or <em>River Edge</em>';
+      $scope.isSexy = 0;
+      $scope.sexyVideo = null;
 
       var makeEndPoint = function(daily, location) {
         var endpoint = 'http://api.openweathermap.org/data/2.5/',
@@ -50,11 +51,15 @@ angular.module('sexyWeather')
         return deferred.promise;
       };
 
+      $scope.tooSexy = function() {
+      	$scope.isSexy = 0;
+      	$scope.sexyVideo = 'tooSexy';
+      };
+
       $scope.getWeather = function() {
         var response = $scope.response,
           finalEndPoint = '',
-          days = 0,
-          weatherData;
+          days = 0;
 
         if (response.when === 'today') {
           finalEndPoint = makeEndPoint(false, response.where);
@@ -66,23 +71,27 @@ angular.module('sexyWeather')
           finalEndPoint = makeEndPoint(true, response.where);
           days = 7;
         }
+        $scope.isSexy = 0;
 
-        fetchWeather(finalEndPoint, days).then(function(weatherArr) {
-          console.log(weatherArr);
-          $scope.isSexy = false;
-          if (days === 2) {
-            if (utilities.inRange(weatherArr[0].min, weatherArr[0].max, 69)) {
-              $scope.isSexy = true;
-            }
-          } else {
-            weatherArr.forEach(function(el) {
-              if (utilities.inRange(el.min, el.max, 69)) {
-                $scope.isSexy = true;
+        fetchWeather(finalEndPoint, days)
+          .then(function(weatherArr) {
+            if (days === 2) {
+              if (utilities.inRange(weatherArr[0].min, weatherArr[0].max, 69)) {
+                $scope.isSexy = 2;
+                $scope.sexyVideo = '39YUXIKrOFk';
               }
-            });
-          }
-          console.log($scope.isSexy);
-        });
+            } else {
+              weatherArr.forEach(function(el) {
+                if (utilities.inRange(el.min, el.max, 69)) {
+                  $scope.isSexy = 2;
+                  $scope.sexyVideo = '39YUXIKrOFk';
+                }
+              });
+              if ($scope.isSexy !== 2) {
+                $scope.isSexy = 1;
+              }
+            }
+          });
       };
     }
   ]);

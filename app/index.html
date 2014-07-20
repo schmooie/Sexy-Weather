@@ -11,6 +11,7 @@
   <!-- bower:css -->
   <!-- endbower -->
   <!-- endbuild -->
+  <link rel="stylesheet" href="styles/animate.css">
   <!-- build:css(.tmp) styles/main.css -->
   <link rel="stylesheet" href="styles/main.css">
   <script src="scripts/modernizr.custom.js"></script>
@@ -24,7 +25,7 @@
         <span>Sexy like you!</span>
       </h1>
     </header>
-    <div class="main clearfix">
+    <div class="main clearfix animated" ng-hide="isSexy === 2" ng-class="{shake: isSexy === 1}">
       <form id="nl-form" class="nl-form">
         Will the weather in
         <br>
@@ -36,7 +37,17 @@
         </div>
       </form>
     </div>
-  </div> <!-- /container -->
+    <div class="main main-video clearfix" ng-show="isSexy === 2">
+      <h1>Aww yeah. It's gonna be 69°.</h1>
+      <div youtube-player code="sexyVideo"></div>
+      <form class="nl-form">
+        <div class="nl-submit-wrap">
+          <button class="nl-submit" ng-click="tooSexy()">This is too sexy.</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- /container -->
 
 
   <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
@@ -47,7 +58,7 @@
       (i[r].q = i[r].q || []).push(arguments)
     }, i[r].l = 1 * new Date();
     a = s.createElement(o),
-      m = s.getElementsByTagName(o)[0];
+    m = s.getElementsByTagName(o)[0];
     a.async = 1;
     a.src = g;
     m.parentNode.insertBefore(a, m)
@@ -75,6 +86,7 @@
   <!-- build:js({.tmp,app}) scripts/scripts.js -->
   <script src="scripts/app.js"></script>
   <script src="scripts/directives/nlForm.js"></script>
+  <script src="scripts/directives/youtube.js"></script>
   <script src="scripts/services/utilities.js"></script>
   <script src="scripts/controllers/main.js"></script>
   <!-- endbuild -->

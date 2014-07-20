@@ -68,6 +68,10 @@ a:hover, a:active {
 .main {
   max-width: 50em;
 }
+
+.main-video {
+  text-align: center;
+}
 /* To Navigation Style */
 
 .codrops-top {

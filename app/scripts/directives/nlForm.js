@@ -531,7 +531,6 @@ nlForm.directive('nlText', function() {
 
       // do we have a subline? ok, then show it!
       $scope.showSubline = function() {
-      	console.log(angular.isString($scope.subline) && $scope.subline !== '');
         return angular.isString($scope.subline) && $scope.subline !== '';
       };
 
