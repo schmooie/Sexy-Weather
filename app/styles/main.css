@@ -46,6 +46,7 @@ a:hover, a:active {
 .main, .container > header {
   margin: 0 auto;
   padding: 2em;
+  position: relative;
 }
 .container > header {
   text-align: center;
@@ -62,6 +63,13 @@ a:hover, a:active {
   font-size: 60%;
   color: #b14943;
   padding: 0 0 0.6em 0.1em;
+}
+#about {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #ffe8e7;
+  font-size: 1.5em;
 }
 /* Main Content */
 
