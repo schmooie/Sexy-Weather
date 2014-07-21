@@ -57,6 +57,7 @@ angular.module('sexyWeather')
       };
 
       $scope.getWeather = function() {
+      	utilities.startSpinner();
         var response = $scope.response,
           finalEndPoint = '',
           days = 0;
@@ -75,10 +76,13 @@ angular.module('sexyWeather')
 
         fetchWeather(finalEndPoint, days)
           .then(function(weatherArr) {
+          	utilities.stopSpinner();
             if (days === 2) {
               if (utilities.inRange(weatherArr[0].min, weatherArr[0].max, 69)) {
                 $scope.isSexy = 2;
                 $scope.sexyVideo = '39YUXIKrOFk';
+              } else {
+              	$scope.isSexy = 1;
               }
             } else {
               weatherArr.forEach(function(el) {

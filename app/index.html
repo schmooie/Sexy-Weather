@@ -12,6 +12,8 @@
   <!-- endbower -->
   <!-- endbuild -->
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.0/animate.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js"></script>
   <!-- build:css(.tmp) styles/main.css -->
   <link rel="stylesheet" href="styles/main.css">
   <script src="scripts/modernizr.custom.js"></script>
@@ -24,6 +26,7 @@
       <h1>Sexy Weather
         <span>Sexy like you!</span>
       </h1>
+      <div id="progress" style="display: none"></div>
     </header>
     <div class="main clearfix animated" ng-hide="isSexy === 2" ng-class="{shake: isSexy === 1}">
       <form id="nl-form" class="nl-form">
