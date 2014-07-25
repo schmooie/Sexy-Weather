@@ -27,11 +27,12 @@
       <a href="http://laudsome.com"><span id="about" class="fa fa-flash"></span></a>
 
       <h1>Sexy Weather
-        <span>Will it be 69°?</span>
+        <span ng-hide="cityNotFound">Will it be 69°?</span>
+        <span ng-show="cityNotFound">Couldn't find {{response.where}}...</span>
       </h1>
       <div id="progress" style="display: none"></div>
     </header>
-    <div class="main clearfix animated" ng-hide="isSexy === 2" ng-class="{shake: isSexy === 1}">
+    <div class="main clearfix animated" ng-hide="isSexy === 2" ng-class="{'wobble': isSexy === 1, 'flash': cityNotFound}">
       <form id="nl-form" class="nl-form">
         Will the weather in
         <br>
