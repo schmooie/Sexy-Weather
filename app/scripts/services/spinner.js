@@ -1,9 +1,8 @@
 'use strict';
 
 angular.module('sexyWeather')
-  .factory('utilities', [
-
-    function() {
+  .factory('Spinner', [
+		function() {
       var opts = {
         lines: 7,
         length: 0,
@@ -26,21 +25,14 @@ angular.module('sexyWeather')
       var targetSpinner = document.getElementById('progress');
       var spinner = new Spinner(opts);
 
-
       return {
-        kToF: function(k) {
-          return Math.floor(k * 1.8 - 459.67);
-        },
-        inRange: function(min, max, target) {
-          return (min <= target) && (target <= max);
-        },
         startSpinner: function() {
-        	$(targetSpinner).fadeIn('fast');
-        	spinner.spin(targetSpinner);
+          $(targetSpinner).fadeIn('fast');
+          spinner.spin(targetSpinner);
         },
         stopSpinner: function() {
-        	$(targetSpinner).fadeOut('fast');
-        	spinner.stop();
+          $(targetSpinner).fadeOut('fast');
+          spinner.stop();
         }
       };
     }
